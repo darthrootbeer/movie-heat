@@ -13,15 +13,18 @@ class TestExtractJsonData:
     def test_extract_movie_with_complete_data(self):
         """Extract movie with all required fields."""
         # Create HTML that matches the regex pattern: "id":[9 digits] + exactly 225 chars + "tomatoScore"
-        # The title must be within the 225-char region for extraction to work
+        # The match_region includes the ID + 225 chars + "tomatoScore":score
+        # Both title and popcornScore need to be in the match_region for extraction
         movie_id = "123456789"
-        # Put title/url in the 225-char region (they need to be there for title extraction to work)
-        title_part = ',"title":"Test Movie","url":"/m/test"'
+        # Put title, url, and popcornScore in the 225-char region
+        # The 225 chars should end right before "tomatoScore"
+        # Note: popcorn extraction expects "popcornScore":X,"theaterReleaseDate" pattern
+        data_part = ',"title":"Test Movie","url":"/m/test","popcornScore":90,"theaterReleaseDate":"Jan 1"'
         # Fill remaining space to make exactly 225 chars total
-        remaining = 225 - len(title_part)
-        full_225 = title_part + 'x' * remaining
-        # Add tomatoScore and rest after the 225 chars
-        post_tomato = ',"tomatoScore":85,"popcornIcon":"upright","popcornScore":90,"theaterReleaseDate":"Jan 1"'
+        remaining = 225 - len(data_part)
+        full_225 = data_part + 'x' * remaining
+        # Add tomatoScore immediately after the 225 chars
+        post_tomato = '"tomatoScore":85,"popcornIcon":"upright"'
         html = f'"id":{movie_id}{full_225}{post_tomato}'
 
         movies = extract_json_data(html)
@@ -34,18 +37,18 @@ class TestExtractJsonData:
         """Extract multiple movies from HTML."""
         # Create HTML with two movies matching the regex pattern
         movie1_id = "111111111"
-        movie1_data = ',"title":"Movie One","url":"/m/one","tomatoScore":80,"popcornIcon":"upright","popcornScore":85,"theaterReleaseDate":"Jan 1"'
-        padding1 = 225 - len(movie1_data)
-        if padding1 > 0:
-            movie1_data = movie1_data + 'x' * padding1
+        movie1_title = ',"title":"Movie One","url":"/m/one"'
+        padding1 = 225 - len(movie1_title)
+        movie1_225 = movie1_title + 'x' * padding1
+        movie1_post = '"tomatoScore":80,"popcornIcon":"upright","popcornScore":85,"theaterReleaseDate":"Jan 1"'
 
         movie2_id = "222222222"
-        movie2_data = ',"title":"Movie Two","url":"/m/two","tomatoScore":70,"popcornIcon":"upright","popcornScore":75,"theaterReleaseDate":"Jan 2"'
-        padding2 = 225 - len(movie2_data)
-        if padding2 > 0:
-            movie2_data = movie2_data + 'x' * padding2
+        movie2_title = ',"title":"Movie Two","url":"/m/two"'
+        padding2 = 225 - len(movie2_title)
+        movie2_225 = movie2_title + 'x' * padding2
+        movie2_post = '"tomatoScore":70,"popcornIcon":"upright","popcornScore":75,"theaterReleaseDate":"Jan 2"'
 
-        html = f'"id":{movie1_id}{movie1_data}"id":{movie2_id}{movie2_data}'
+        html = f'"id":{movie1_id}{movie1_225}{movie1_post}"id":{movie2_id}{movie2_225}{movie2_post}'
 
         movies = extract_json_data(html)
         assert len(movies) >= 1  # Should extract at least one movie
@@ -112,11 +115,11 @@ class TestScrapeMovies:
         """Test successful movie scraping."""
         # Mock HTML with movie data matching the regex pattern
         movie_id = "123456789"
-        json_data = ',"title":"Test Movie","url":"/m/test","tomatoScore":85,"popcornIcon":"upright","popcornScore":90,"theaterReleaseDate":"Jan 1"'
-        padding_needed = 225 - len(json_data)
-        if padding_needed > 0:
-            json_data = json_data + 'x' * padding_needed
-        mock_html = f'"id":{movie_id}{json_data}'
+        title_part = ',"title":"Test Movie","url":"/m/test"'
+        padding_needed = 225 - len(title_part)
+        full_225 = title_part + 'x' * padding_needed
+        post_tomato = '"tomatoScore":85,"popcornIcon":"upright","popcornScore":90,"theaterReleaseDate":"Jan 1"'
+        mock_html = f'"id":{movie_id}{full_225}{post_tomato}'
         mock_fetch.return_value = mock_html
 
         movies = scrape_movies()
