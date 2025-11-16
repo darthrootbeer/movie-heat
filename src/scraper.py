@@ -45,7 +45,7 @@ def fetch_page_with_selenium(url: str) -> str:
 
 def fetch_page(url: str) -> str | None:
     """Fetch HTML content from URL with retry logic.
-    
+
     First tries requests, then falls back to Selenium if needed.
     """
     headers = {
@@ -96,7 +96,7 @@ def fetch_page(url: str) -> str | None:
 
 def extract_json_data(html: str) -> list[dict]:
     """Extract movie data from embedded JSON in HTML.
-    
+
     Uses the same regex pattern as the old bash script:
     - Find "id":[0-9]{9,9} followed by exactly 225 characters
     - Then look for "tomatoScore":[0-9]{1,3} within that region
