@@ -1,47 +1,58 @@
-# Movie Heat - Rotten Tomatoes Scraper
+# Movie Heat
 
-A modernized Python scraper for Rotten Tomatoes "Opening This Week" movies, replacing the old bash-based regex scraping scripts.
+A Python scraper for Rotten Tomatoes "Opening This Week" movies that sends weekly email newsletters every Thursday at 12 noon Eastern.
+
+## How It Works
+
+1. **Scraping**: Fetches movie data from Rotten Tomatoes using regex pattern matching (same approach as the original bash scripts)
+2. **Formatting**: Formats scores with emoji indicators (🍅 for good scores, 🤢 for bad)
+3. **Email**: Sends formatted results via Gmail SMTP
+4. **Scheduling**: Runs automatically via GitHub Actions every Thursday at 12:00 PM Eastern
 
 ## Features
 
 - Scrapes "Opening This Week" movies from Rotten Tomatoes
-- Extracts tomato scores and popcorn scores
+- Extracts tomato scores (Tomatometer) and popcorn scores (Audience Score)
 - Formats output with emoji indicators matching the original script format
-- Console output (email support planned for future)
+- Email delivery via Gmail SMTP
+- Automated weekly scheduling via GitHub Actions
 - Error handling and retry logic
 - Optional Selenium support for JavaScript-rendered content
 
 ## Installation
 
-1. Create a virtual environment:
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-2. Install dependencies:
-```bash
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Note: If you need Selenium support (for JavaScript-rendered pages), Chrome/Chromium must be installed on your system. Selenium will automatically download the ChromeDriver.
-
 ## Usage
 
-Run the scraper:
+### Local Console Output
+
 ```bash
 python3 rt_scraper.py
 ```
 
-Or make it executable and run directly:
+### Email Delivery
+
+Set environment variables and run:
+
 ```bash
-chmod +x rt_scraper.py
-./rt_scraper.py
+export GMAIL_USER="your-email@gmail.com"
+export GMAIL_APP_PASSWORD="your-app-password"
+export RECIPIENT_EMAIL="recipient@example.com"
+export SEND_EMAIL="true"
+python3 rt_scraper.py
 ```
 
-## Output Format
+**Gmail Setup**: You need a Gmail App Password (not your regular password):
+1. Enable 2-factor authentication on your Gmail account
+2. Generate an App Password: Google Account → Security → App Passwords
+3. Use the 16-character app password as `GMAIL_APP_PASSWORD`
 
-The scraper outputs formatted text matching the original script:
+## Output Format
 
 ```
 🍅 Rotten Tomatoes Opening This Week
@@ -53,64 +64,69 @@ The scraper outputs formatted text matching the original script:
 Link: https://bit.ly/2A0na2e
 ```
 
-### Score Icons
+**Score Icons**:
+- Tomato: 🍅 if >59, 🤢 if ≤59
+- Popcorn: 🍿 if >59, 👎🏻 if 1-59, "--" if 0
 
-- **Tomato Score**: 🍅 if >59, 🤢 if ≤59
-- **Popcorn Score**: 🍿 if >59, 👎🏻 if 1-59, "--" if 0
+## GitHub Actions Setup
+
+The project includes a GitHub Actions workflow that runs every Thursday at 12:00 PM Eastern.
+
+### Required Secrets
+
+Set these in your GitHub repository settings (Settings → Secrets and variables → Actions):
+
+- `GMAIL_USER`: Your Gmail address
+- `GMAIL_APP_PASSWORD`: Your Gmail app password (16 characters)
+- `RECIPIENT_EMAIL`: Email address to send newsletters to
+
+### Workflow File
+
+The workflow is defined in `.github/workflows/weekly-newsletter.yml` and runs:
+- Every Thursday at 17:00 UTC (12:00 PM Eastern)
+- Can be manually triggered via `workflow_dispatch`
 
 ## Project Structure
 
 ```
 movie-heat/
 ├── src/
-│   ├── __init__.py
 │   ├── config.py      # Configuration settings
 │   ├── scraper.py     # Core scraping logic
 │   ├── formatter.py   # Score formatting and emoji logic
+│   ├── emailer.py     # Email sending functionality
 │   └── main.py        # Entry point
+├── .github/
+│   └── workflows/
+│       └── weekly-newsletter.yml  # GitHub Actions workflow
+├── tests/             # Unit tests
 ├── rt_scraper.py      # Command-line script
-├── requirements.txt   # Python dependencies
-└── README.md          # This file
+└── requirements.txt   # Python dependencies
 ```
 
 ## Configuration
 
 Edit `src/config.py` to customize:
-
-- `RT_OPENING_URL`: The Rotten Tomatoes URL to scrape
+- `RT_OPENING_URL`: Rotten Tomatoes URL to scrape
 - `SCORE_THRESHOLD`: Score threshold for emoji icons (default: 59)
 - `REQUEST_TIMEOUT`: HTTP request timeout (default: 30 seconds)
 - `REQUEST_RETRIES`: Number of retry attempts (default: 3)
 
+## Testing
+
+```bash
+pytest tests/ -v
+```
+
 ## Known Limitations
 
-**Important**: Rotten Tomatoes has changed their page structure and now loads movie data dynamically via JavaScript. The scraper includes Selenium support as a fallback, but:
+Rotten Tomatoes loads movie data dynamically via JavaScript. The scraper:
+1. First tries `requests` library
+2. Falls back to Selenium if needed (requires Chrome/Chromium)
+3. Uses regex pattern matching (same as original bash scripts)
 
-1. Chrome/Chromium must be installed for Selenium to work
-2. The regex patterns may need adjustment if RT changes their data format
-3. RT may return 404 status codes but still serve content (handled automatically)
-
-If the scraper doesn't find movies, RT's page structure may have changed. Check the error message for details.
-
-## Future Enhancements
-
-- Email delivery support
-- Multiple category support (Box Office, Home Releases)
-- Pushover notifications
-- Configurable output formats
-- Caching to reduce API calls
-
-## Migration from Old Scripts
-
-The old bash scripts (`rt_scores_limited.sh`, `rt_top.sh`) used regex to extract JSON data embedded in HTML. This Python version:
-
-- Uses proper JSON parsing where possible
-- Falls back to regex matching (same pattern as old script)
-- Includes Selenium fallback for JavaScript-rendered content
-- Better error handling and logging
-- More maintainable code structure
+If scraping fails, RT's page structure may have changed.
 
 ## License
 
 This project is for personal use. Please respect Rotten Tomatoes' Terms of Service when scraping.
-

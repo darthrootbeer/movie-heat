@@ -1,7 +1,9 @@
 """Main entry point for Rotten Tomatoes scraper."""
 
+import os
 import sys
 
+from .emailer import send_email, should_send_email
 from .formatter import format_output
 from .scraper import scrape_movies
 
@@ -15,8 +17,22 @@ def main():
         # Format output
         output = format_output(movies, include_footer=True)
 
-        # Print to console
-        print(output)
+        # Check if email should be sent
+        send_email_flag = os.getenv("SEND_EMAIL", "false").lower() == "true"
+        recipient_email = os.getenv("RECIPIENT_EMAIL")
+
+        if send_email_flag and recipient_email:
+            # Send email
+            try:
+                send_email(output, recipient_email)
+            except Exception as e:
+                print(f"Warning: Failed to send email: {e}", file=sys.stderr)
+                # Continue to print to console even if email fails
+                print(output)
+                return 1
+        else:
+            # Print to console
+            print(output)
 
         return 0
 
