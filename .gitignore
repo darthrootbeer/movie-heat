@@ -25,3 +25,6 @@ Thumbs.db
 /tmp/
 *.html
 
+# Old reference scripts (not part of new implementation)
+old/
+
