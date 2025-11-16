@@ -4,6 +4,7 @@
 
 - [ ] `000001` - Add Cinemascore scores for each movie
 - [ ] `000002` - Add IMDB scores for each movie
+- [ ] `00000b` - Fix scraper extraction tests (3 tests failing due to test data construction)
 
 ## Completed
 
