@@ -1,5 +1,7 @@
 # Architecture
 
+**Note**: For AI assistants working on this project, see `AI_INSTRUCTIONS.md` for detailed development guidance. For human developers, see `DEVELOPMENT.md`.
+
 ## Overview
 
 Movie Heat is a Python-based scraper for Rotten Tomatoes movie scores. It replaces the old bash-based regex scraping scripts with a more maintainable, modular Python implementation.
@@ -14,7 +16,12 @@ movie-heat/
 │   ├── config.py      # Configuration and settings
 │   ├── scraper.py     # Web scraping logic (requests + Selenium)
 │   ├── formatter.py   # Output formatting and emoji logic
+│   ├── emailer.py     # Email sending functionality
 │   └── main.py        # Application entry point
+├── .github/
+│   └── workflows/
+│       └── weekly-newsletter.yml  # GitHub Actions workflow
+├── tests/             # Unit tests
 ├── rt_scraper.py      # CLI executable script
 └── requirements.txt   # Python dependencies
 ```
@@ -39,10 +46,27 @@ movie-heat/
    - Handles edge cases (missing scores, zero scores)
    - Generates formatted output lines
 
-4. **Output** (`main.py`)
-   - Orchestrates scraping and formatting
-   - Outputs to console (stdout)
+4. **Formatting** (`formatter.py`)
+   - Converts scores to emoji icons based on thresholds
+   - Formats scores with proper padding
+   - Handles edge cases (missing scores, zero scores)
+   - Generates formatted output lines
+
+5. **Email** (`emailer.py`)
+   - Creates HTML and plain text email content
+   - Sends emails via Gmail SMTP
+   - Handles email errors gracefully
+
+6. **Output** (`main.py`)
+   - Orchestrates scraping, formatting, and optional email sending
+   - Outputs to console (stdout) by default
+   - Sends email if `SEND_EMAIL=true` and `RECIPIENT_EMAIL` are set
    - Handles errors and exits with appropriate codes
+
+7. **Scheduling** (`.github/workflows/weekly-newsletter.yml`)
+   - Runs automatically every Thursday at 12:00 PM Eastern
+   - Uses GitHub Actions cron schedule
+   - Configures environment variables from repository secrets
 
 ### Key Design Decisions
 
@@ -107,10 +131,18 @@ Extended format (example):
 - `requests` - HTTP client
 - `beautifulsoup4` - HTML parsing
 - `lxml` - HTML parser backend
+- `pytz` - Timezone handling
 
 **Optional:**
 - `selenium` - JavaScript rendering (fallback)
 - `webdriver-manager` - ChromeDriver management
+
+**Development:**
+- `pytest` - Testing framework
+- `pytest-cov` - Test coverage
+- `black` - Code formatter
+- `ruff` - Linter
+- `mypy` - Type checker
 
 ## Configuration
 
