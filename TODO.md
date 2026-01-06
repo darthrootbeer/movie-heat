@@ -560,6 +560,9 @@ def get_movies(list_type='now-playing', year=None, limit=15):
 6. **IMDb Popularity Spacing** - Increase space between IMDb text and popularity number (add ~1em margin)
 7. **Age Rating Format** - Remove "+" from certification (US doesn't use +)
 8. **Age Rating Position** - Move certification to float right next to title (e.g., "Oppenheimer PG-13" instead of below ratings table)
+9. **Score Text Weight** - Increase font weight of score text in circle to 300-400 (currently 200)
+10. **Score Circle Colors** - Match MDB List color scheme (greenish for good, yellowish for ok, reddish for not good)
+11. **Ratings Table Spacing** - Increase vertical spacing between rows by ~0.5 character
 
 ### Version 1.0 (Tagged v1.0)
 
