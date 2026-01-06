@@ -29,3 +29,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Generated HTML files
+movies_preview.html
