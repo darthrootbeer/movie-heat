@@ -558,6 +558,8 @@ def get_movies(list_type='now-playing', year=None, limit=15):
 4. **Data Mapping** - Map MDB List API response fields to our data structure
 5. **IMDb/TMDb IDs** - Extract IDs from API response for proper link generation
 6. **IMDb Popularity Spacing** - Increase space between IMDb text and popularity number (add ~1em margin)
+7. **Age Rating Format** - Remove "+" from certification (US doesn't use +)
+8. **Age Rating Position** - Move certification to float right next to title (e.g., "Oppenheimer PG-13" instead of below ratings table)
 
 ### Version 1.0 (Tagged v1.0)
 
