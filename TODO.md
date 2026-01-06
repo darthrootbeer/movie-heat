@@ -557,6 +557,7 @@ def get_movies(list_type='now-playing', year=None, limit=15):
 3. **Email Formatting** - Convert HTML to email-safe format (table-based layout)
 4. **Data Mapping** - Map MDB List API response fields to our data structure
 5. **IMDb/TMDb IDs** - Extract IDs from API response for proper link generation
+6. **IMDb Popularity Spacing** - Increase space between IMDb text and popularity number (add ~1em margin)
 
 ### Version 1.0 (Tagged v1.0)
 
