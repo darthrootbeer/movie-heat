@@ -1,4 +1,22 @@
-# Movie Ratings Checker
+# Movie Heat
+
+A Python tool that fetches movie ratings from multiple sources and formats them for email delivery. Currently in transition from v1.0 (multi-API approach) to v2.0 (single MDB List API source).
+
+## Version 2.0 (In Development)
+
+Version 2.0 uses the MDB List API as a single source for all movie ratings and metadata, eliminating the need for multiple API calls and web scraping. The output is formatted as an HTML email matching the MDB List website's card layout.
+
+### MVP Status
+
+- ✅ HTML layout matching MDB List design
+- ✅ Two-column responsive grid
+- ✅ Color-coded ratings with clickable source links
+- 🚧 API endpoint discovery (currently using sample data)
+- 🚧 Email-safe HTML formatting
+
+Run the MVP: `python3 mdb_mvp.py` (generates `movies_preview.html`)
+
+## Version 1.0 (Stable)
 
 A minimal Python script that fetches the latest movie releases and displays ratings from multiple sources in a clean comparison table.
 

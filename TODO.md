@@ -534,17 +534,40 @@ def get_movies(list_type='now-playing', year=None, limit=15):
 
 ## 📊 Current Status
 
+### Version 2.0 - MDB List API (In Progress)
+
+✅ **Implemented:**
+- MVP HTML generator (`mdb_mvp.py`) matching MDB List card layout
+- Two-column responsive grid layout
+- Movie poster display (60% width, full height)
+- Overall score badge (centered, color-coded)
+- Ratings table with source, score, and vote counts
+- Color-coded source names (Tomato red, Popcorn teal, Metacritic gold)
+- Clickable source links to review pages
+- Title and synopsis below poster
+- Age rating badge
+- Relative font sizing (em units) for proper scaling
+
+🚧 **In Progress / TODO:**
+1. **API Integration** - Need to discover correct MDB List API endpoints
+   - Current: Using sample data (API endpoints return 405/404)
+   - Need: Working endpoint to fetch movies with ratings
+   - Endpoints tried: `/list/*`, `/user/lists`, `/media`, `/search` - all failed
+2. **Poster Fallback** - TMDB API integration for missing posters (partially implemented)
+3. **Email Formatting** - Convert HTML to email-safe format (table-based layout)
+4. **Data Mapping** - Map MDB List API response fields to our data structure
+5. **IMDb/TMDb IDs** - Extract IDs from API response for proper link generation
+
+### Version 1.0 (Tagged v1.0)
+
 ✅ **Implemented:**
 - IMDB ratings (OMDb)
 - Rotten Tomatoes Tomatometer (scraping)
-- Rotten Tomatoes Popcornmeter (scraping) ← JUST ADDED!
+- Rotten Tomatoes Popcornmeter (scraping)
 - Metacritic scores (OMDb)
 - TMDB ratings
 - CinemaScore grades (API)
+- Email delivery functionality
+- GitHub Actions automation
 
-🚧 **Next Up:**
-1. Quick Wins #33-36 (UI improvements - ~1 hour total)
-2. GitHub Actions + Email Automation (#21) - Deploy to production
-3. Then follow priority matrix above
-
-⏱️ **Current Performance:** ~30-45 seconds for 15 movies
+⏱️ **Current Performance:** ~30-45 seconds for 15 movies (v1.0)
