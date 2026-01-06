@@ -16,6 +16,9 @@ import json
 import re
 import requests
 import argparse
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -416,48 +419,48 @@ def get_cinemascore(title: str, year: str) -> str:
         return 'N/A'
 
 
-def display_ratings(movies: List[Dict], normalize: bool = False):
-    """Display movie ratings in sequential text format."""
+def format_ratings_text(movies: List[Dict], normalize: bool = False) -> str:
+    """Format movie ratings as plain text string."""
     if not movies:
-        print("No movies to display.")
-        return
+        return "No movies to display."
 
-    print("\n" + "="*80)
-    print("Latest Movie Releases".center(80))
-    print("="*80 + "\n")
+    output = []
+    output.append("\n" + "="*80)
+    output.append("Latest Movie Releases".center(80))
+    output.append("="*80 + "\n")
 
     for i, movie in enumerate(movies, 1):
         # Title
-        print(f"{movie['title']}")
+        output.append(f"{movie['title']}")
 
         # Written by • Directed by • Produced by
-        print(f"Written by: {movie.get('writer', 'N/A')} • Directed by: {movie.get('director', 'N/A')} • Produced by: {movie.get('producer', 'N/A')}")
+        output.append(f"Written by: {movie.get('writer', 'N/A')} • Directed by: {movie.get('director', 'N/A')} • Produced by: {movie.get('producer', 'N/A')}")
 
         # Starring
-        print(f"Starring: {movie.get('actors', 'N/A')}")
+        output.append(f"Starring: {movie.get('actors', 'N/A')}")
 
         # Release date
         release_date = movie.get('release_date', 'N/A')
         release_type = movie.get('release_type', 'N/A')
-        print(f"Release: {release_date} ({release_type})")
+        output.append(f"Release: {release_date} ({release_type})")
 
         # Genres • Runtime • MPA Rating
         genres = movie.get('genres', 'N/A')
         runtime = movie.get('runtime', 'N/A')
         rating = movie.get('mpa_rating', 'NR')
-        print(f"Genres: {genres} • {runtime} • {rating}")
+        output.append(f"Genres: {genres} • {runtime} • {rating}")
 
         # Studio
-        print(f"Studio: {movie.get('studio', 'N/A')}")
+        output.append(f"Studio: {movie.get('studio', 'N/A')}")
 
         # Logline/Overview
         overview = movie.get('overview', 'N/A')
         if len(overview) > 200:
             overview = overview[:197] + '...'
-        print(f"Logline: {overview}")
+        output.append(f"Logline: {overview}")
 
         # Separator
-        print("---")
+        output.append("---")
 
         # Helper to format ratings
         def fmt(value, default='-'):
@@ -465,19 +468,139 @@ def display_ratings(movies: List[Dict], normalize: bool = False):
             return default if v == 'N/A' else v
 
         # Ratings
-        print(f"imdb: {fmt(movie.get('imdb_rating'))}")
-        print(f"tomato: {fmt(movie.get('tomatometer'))}")
-        print(f"popcorn: {fmt(movie.get('popcornmeter'))}")
-        print(f"meta: {fmt(movie.get('metacritic'))}")
-        print(f"tmdb: {fmt(movie.get('tmdb_rating'))}")
-        print(f"cinemascore: {fmt(movie.get('cinemascore'))}")
-        print(f"boxd: {fmt(movie.get('letterboxd'))}")
+        output.append(f"imdb: {fmt(movie.get('imdb_rating'))}")
+        output.append(f"tomato: {fmt(movie.get('tomatometer'))}")
+        output.append(f"popcorn: {fmt(movie.get('popcornmeter'))}")
+        output.append(f"meta: {fmt(movie.get('metacritic'))}")
+        output.append(f"tmdb: {fmt(movie.get('tmdb_rating'))}")
+        output.append(f"cinemascore: {fmt(movie.get('cinemascore'))}")
+        output.append(f"boxd: {fmt(movie.get('letterboxd'))}")
 
         # Add spacing between movies
         if i < len(movies):
-            print("\n" + "="*80 + "\n")
+            output.append("\n" + "="*80 + "\n")
 
-    print()
+    return "\n".join(output) + "\n"
+
+
+def format_ratings_html(movies: List[Dict], normalize: bool = False) -> str:
+    """Format movie ratings as HTML string."""
+    if not movies:
+        return "<p>No movies to display.</p>"
+
+    html = []
+    html.append("""
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .movie { margin-bottom: 30px; padding: 15px; border-bottom: 2px solid #ddd; }
+            .title { font-size: 20px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+            .info { color: #666; font-size: 14px; margin: 5px 0; }
+            .ratings { margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; }
+            .rating { display: inline-block; margin-right: 15px; font-size: 14px; }
+            .rating-label { font-weight: bold; color: #555; }
+        </style>
+    </head>
+    <body>
+        <h1>Latest Movie Releases</h1>
+    """)
+
+    for movie in movies:
+        html.append('<div class="movie">')
+        html.append(f'<div class="title">{movie["title"]}</div>')
+        
+        # Movie info
+        html.append(f'<div class="info">Written by: {movie.get("writer", "N/A")} • Directed by: {movie.get("director", "N/A")} • Produced by: {movie.get("producer", "N/A")}</div>')
+        html.append(f'<div class="info">Starring: {movie.get("actors", "N/A")}</div>')
+        
+        release_date = movie.get('release_date', 'N/A')
+        release_type = movie.get('release_type', 'N/A')
+        html.append(f'<div class="info">Release: {release_date} ({release_type})</div>')
+        
+        genres = movie.get('genres', 'N/A')
+        runtime = movie.get('runtime', 'N/A')
+        rating = movie.get('mpa_rating', 'NR')
+        html.append(f'<div class="info">Genres: {genres} • {runtime} • {rating}</div>')
+        html.append(f'<div class="info">Studio: {movie.get("studio", "N/A")}</div>')
+        
+        overview = movie.get('overview', 'N/A')
+        if len(overview) > 200:
+            overview = overview[:197] + '...'
+        html.append(f'<div class="info">Logline: {overview}</div>')
+        
+        # Ratings
+        html.append('<div class="ratings">')
+        
+        def fmt(value, default='-'):
+            v = str(value) if value else default
+            return default if v == 'N/A' else v
+        
+        ratings = [
+            ('imdb', movie.get('imdb_rating')),
+            ('tomato', movie.get('tomatometer')),
+            ('popcorn', movie.get('popcornmeter')),
+            ('meta', movie.get('metacritic')),
+            ('tmdb', movie.get('tmdb_rating')),
+            ('cinemascore', movie.get('cinemascore')),
+            ('boxd', movie.get('letterboxd'))
+        ]
+        
+        for label, value in ratings:
+            html.append(f'<span class="rating"><span class="rating-label">{label}:</span> {fmt(value)}</span>')
+        
+        html.append('</div>')
+        html.append('</div>')
+
+    html.append("</body></html>")
+    return "\n".join(html)
+
+
+def send_email(movies: List[Dict], normalize: bool = False):
+    """Send movie ratings via email using Gmail SMTP."""
+    gmail_user = os.getenv('GMAIL_USER', '')
+    gmail_password = os.getenv('GMAIL_APP_PASSWORD', '')
+    recipient = os.getenv('RECIPIENT_EMAIL', gmail_user)
+
+    if not gmail_user or not gmail_password:
+        print("Warning: Email credentials not set. Skipping email send.")
+        return False
+
+    try:
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Movie Ratings - {datetime.now().strftime("%B %d, %Y")}'
+        msg['From'] = gmail_user
+        msg['To'] = recipient
+
+        # Create plain text and HTML versions
+        text_content = format_ratings_text(movies, normalize)
+        html_content = format_ratings_html(movies, normalize)
+
+        # Attach parts
+        part1 = MIMEText(text_content, 'plain')
+        part2 = MIMEText(html_content, 'html')
+        msg.attach(part1)
+        msg.attach(part2)
+
+        # Send email
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(gmail_user, gmail_password)
+            server.send_message(msg)
+
+        print(f"\nEmail sent successfully to {recipient}")
+        return True
+
+    except Exception as e:
+        print(f"\nError sending email: {e}")
+        return False
+
+
+def display_ratings(movies: List[Dict], normalize: bool = False):
+    """Display movie ratings in sequential text format."""
+    text = format_ratings_text(movies, normalize)
+    print(text)
 
 
 def main():
@@ -490,6 +613,11 @@ def main():
         '-n', '--normalize',
         action='store_true',
         help='Normalize all scores to 0-100 scale (removes %%, /10, /100 suffixes)'
+    )
+    parser.add_argument(
+        '--email',
+        action='store_true',
+        help='Send results via email (requires GMAIL_USER, GMAIL_APP_PASSWORD, RECIPIENT_EMAIL env vars)'
     )
     args = parser.parse_args()
 
@@ -536,6 +664,10 @@ def main():
 
     # Display results
     display_ratings(movies, normalize=args.normalize)
+
+    # Send email if requested
+    if args.email:
+        send_email(movies, normalize=args.normalize)
 
 
 if __name__ == '__main__':

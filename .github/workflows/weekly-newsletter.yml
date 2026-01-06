@@ -1,0 +1,39 @@
+name: Weekly Movie Ratings Newsletter
+
+on:
+  schedule:
+    # Run every Friday at 9:00 AM UTC (adjust timezone as needed)
+    - cron: '0 9 * * 5'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  send-ratings:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run movie ratings script and send email
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          OMDB_API_KEY: ${{ secrets.OMDB_API_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+        run: |
+          python movie_ratings.py --email
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Workflow failed. Check the logs above for details."
